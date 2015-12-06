@@ -32,6 +32,9 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     private static final String SCAN_FORMAT = "scanFormat";
     private static final String SCAN_CONTENTS = "scanContents";
 
+    protected static final int SCAN_ISBN_ACTIVITY_CODE = 100;
+    protected static final String ISBN_KEY = "ISBN";
+
     private String mScanFormat = "Format:";
     private String mScanContents = "Contents:";
 
@@ -61,8 +64,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //no need
+            public void onTextChanged(CharSequence s, int start, int before, int count) {//no need
             }
 
             @Override
@@ -88,14 +90,9 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         rootView.findViewById(R.id.scan_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // This is the callback method that the system will invoke when your button is
-                // clicked. You might do this by launching another app or by including the
-                //functionality directly in this app.
-                // Hint: Use a Try/Catch block to handle the Intent dispatch gracefully, if you
-                // are using an external app.
-                //when you're done, remove the toast below.
+                //@olga - start the ScannerActivity to capture the isbn code
                 Intent scanIntent = new Intent(getActivity(), ScannerActivity.class);
-                startActivityForResult(scanIntent, MainActivity.SCAN_ISBN_ACTIVITY_CODE);
+                startActivityForResult(scanIntent, SCAN_ISBN_ACTIVITY_CODE);
             }
         });
 
@@ -196,5 +193,20 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         activity.setTitle(R.string.scan);
+    }
+
+    /*@olga - on receiving the result if successful, set the input field
+    * value to received isbn string
+    */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Check which request we're responding to
+        if (requestCode == SCAN_ISBN_ACTIVITY_CODE) {
+            // Make sure the request was successful
+            if (resultCode == MainActivity.RESULT_OK) {
+                ean.setText(data.getStringExtra(ISBN_KEY));
+            }
+        }
     }
 }
