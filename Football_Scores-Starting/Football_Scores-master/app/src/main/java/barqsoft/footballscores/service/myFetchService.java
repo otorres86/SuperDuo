@@ -36,7 +36,8 @@ public class myFetchService extends IntentService
     public static final String ACTION_DATA_UPDATED =
             "barqsoft.footballscores.service.ACTION_DATA_UPDATED";
 
-    //Constants for the timeframe ids: p2 stands for past 2 days, n3 - next 3 days including current day
+    //@olga - Constants for the timeframe ids: p2 stands for past 2 days,
+    // n3 - next 3 days including current day (used to be n2 which was incorrect)
     final String TIMEFRAME_ID_NEXT = "n3";
     final String TIMEFRAME_ID_PAST = "p2";
 
