@@ -8,7 +8,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.util.Log;
+import android.support.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * Created by saj on 24/12/14.
@@ -26,6 +29,18 @@ public class BookProvider extends ContentProvider {
 
     private static final int BOOK_FULL = 500;
     private static final int BOOK_FULLDETAIL = 501;
+
+    //@olga - create ISBN_Status annotation (retain for source code only)
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({ISBN_STATUS_OK, ISBN_STATUS_SERVER_DOWN, ISBN_STATUS_SERVER_INVALID, ISBN_STATUS_UNKNOWN, ISBN_STATUS_NO_NETWORK})
+    public @interface ISBN_Status {}
+
+    //@olga - Add status constants
+    public static final int ISBN_STATUS_OK = 0;
+    public static final int ISBN_STATUS_SERVER_DOWN = 1;
+    public static final int ISBN_STATUS_SERVER_INVALID = 2;
+    public static final int ISBN_STATUS_UNKNOWN = 3;
+    public static final int ISBN_STATUS_NO_NETWORK = 4;
 
     private static final UriMatcher uriMatcher = buildUriMatcher();
 

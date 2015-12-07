@@ -2,9 +2,12 @@ package it.jaschke.alexandria.services;
 
 import android.app.IntentService;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -21,7 +24,9 @@ import java.net.URL;
 
 import it.jaschke.alexandria.MainActivity;
 import it.jaschke.alexandria.R;
+import it.jaschke.alexandria.Utility;
 import it.jaschke.alexandria.data.AlexandriaContract;
+import it.jaschke.alexandria.data.BookProvider;
 
 
 /**
@@ -95,8 +100,16 @@ public class BookService extends IntentService {
         BufferedReader reader = null;
         String bookJsonString = null;
 
+        //If there is no network, no need to try get the data
+        Context context = getApplicationContext();
+        if(!Utility.isNetworkAvailable(context)){
+            setIsbnStatus(context, BookProvider.ISBN_STATUS_NO_NETWORK);
+            return;
+        }
+
         try {
             final String FORECAST_BASE_URL = "https://www.googleapis.com/books/v1/volumes?";
+
             final String QUERY_PARAM = "q";
 
             final String ISBN_PARAM = "isbn:" + ean;
@@ -125,11 +138,19 @@ public class BookService extends IntentService {
             }
 
             if (buffer.length() == 0) {
+                setIsbnStatus(getApplicationContext(), BookProvider.ISBN_STATUS_SERVER_DOWN);
                 return;
             }
             bookJsonString = buffer.toString();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error ", e);
+        }
+        //@olga - add catch for IOException for more detailed message
+        catch(IOException ioe){
+            setIsbnStatus(getApplicationContext(), BookProvider.ISBN_STATUS_SERVER_DOWN);
+            Log.e(LOG_TAG, "IOException Error: ", ioe);
+        }
+        catch (Exception e) {
+            setIsbnStatus(getApplicationContext(), BookProvider.ISBN_STATUS_UNKNOWN);
+            Log.e(LOG_TAG, "Error: ", e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -193,11 +214,20 @@ public class BookService extends IntentService {
                 writeBackAuthors(ean, bookInfo.getJSONArray(AUTHORS));
             }
             if(bookInfo.has(CATEGORIES)){
-                writeBackCategories(ean,bookInfo.getJSONArray(CATEGORIES) );
+                writeBackCategories(ean, bookInfo.getJSONArray(CATEGORIES));
             }
 
+            setIsbnStatus(getApplicationContext(), BookProvider.ISBN_STATUS_OK);
+
         } catch (JSONException e) {
-            Log.e(LOG_TAG, "Error ", e);
+            setIsbnStatus(getApplicationContext(), BookProvider.ISBN_STATUS_SERVER_INVALID);
+            Log.e(LOG_TAG, "JSONException Error: ", e);
+        }
+        /**@olga - add a catch statement for null pointer exception - if the buffer is null -
+        * the attempt to create a JSON object will result in such an exception
+        */
+        catch(NullPointerException npe){
+            Log.e(LOG_TAG, "NullPointerException Error ", npe);
         }
     }
 
@@ -229,5 +259,17 @@ public class BookService extends IntentService {
             getContentResolver().insert(AlexandriaContract.CategoryEntry.CONTENT_URI, values);
             values= new ContentValues();
         }
+    }
+
+    /**
+     * @olga Sets the isbn status into shared preference.
+     * @param context - context to get PreferenceManager from
+     * @param isbnStatus - The intDef value to set
+     */
+    private void setIsbnStatus(Context context, @BookProvider.ISBN_Status int isbnStatus){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor sharedPrefEditor = sp.edit();
+        sharedPrefEditor.putInt(context.getString(R.string.isbn_status_key), isbnStatus);
+        sharedPrefEditor.commit();
     }
  }

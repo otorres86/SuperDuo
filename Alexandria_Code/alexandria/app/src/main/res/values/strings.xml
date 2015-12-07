@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">Alexandria</string>
 
+    <!-- Book list fragment -->
+    <string name="empty_book_list">No books available</string>
+
     <!-- Menu Items -->
     <string name="books">List of Books</string>
     <string name="scan">Scan/Add a Book</string>
@@ -28,4 +31,13 @@
 <!-- TODO: Remove or change this placeholder text -->
     <string name="about_text">This application gets book information from a Google API. All titles, cover images, and author information come from there.
     The original version of this app was built by Sascha Jaschke, and a modified version is given to students in the Udacity Android Nanodegree program. </string>
+
+    <!-- No information available messages -->
+    <string name="add_book_no_network">No book information available. The network is not available to fetch book data.</string>
+    <string name="add_book_server_down">No book information available. The server is not returning data.</string>
+    <string name="add_book_server_error">No book information available. The server is not returning valid data.</string>
+    <string name="no_book_info_default_message">No book information available</string>
+
+    <!-- Key name for storing isbn status in SharedPreferences -->
+    <string name="isbn_status_key" transatable="false">isbn-status</string>
 </resources>

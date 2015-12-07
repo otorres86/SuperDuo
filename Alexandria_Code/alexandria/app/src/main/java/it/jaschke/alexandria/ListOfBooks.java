@@ -7,7 +7,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +50,7 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
 
         bookListAdapter = new BookListAdapter(getActivity(), cursor, 0);
         View rootView = inflater.inflate(R.layout.fragment_list_of_books, container, false);
+
         searchText = (EditText) rootView.findViewById(R.id.searchText);
         rootView.findViewById(R.id.searchButton).setOnClickListener(
                 new View.OnClickListener() {
@@ -62,6 +62,8 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
         );
 
         bookList = (ListView) rootView.findViewById(R.id.listOfBooks);
+        //@olga - set empty view in case no books are currently in the db
+        bookList.setEmptyView(rootView.findViewById(R.id.listOfBooks_empty));
         bookList.setAdapter(bookListAdapter);
 
         bookList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -70,7 +72,7 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Cursor cursor = bookListAdapter.getCursor();
                 if (cursor != null && cursor.moveToPosition(position)) {
-                    ((Callback)getActivity())
+                    ((Callback) getActivity())
                             .onItemSelected(cursor.getString(cursor.getColumnIndex(AlexandriaContract.BookEntry._ID)));
                 }
             }
@@ -129,4 +131,5 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
         super.onAttach(activity);
         activity.setTitle(R.string.books);
     }
+
 }

@@ -2,8 +2,10 @@ package it.jaschke.alexandria;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -18,11 +20,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import it.jaschke.alexandria.data.AlexandriaContract;
+import it.jaschke.alexandria.data.BookProvider;
 import it.jaschke.alexandria.services.BookService;
 import it.jaschke.alexandria.services.DownloadImage;
 
 
-public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
 
     private EditText ean;
@@ -122,6 +125,20 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         return rootView;
     }
 
+    @Override
+    public void onResume(){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause(){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sharedPref.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
+    }
+
     private void restartLoader(){
         getLoaderManager().restartLoader(LOADER_ID, null, this);
     }
@@ -148,6 +165,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
         if (!data.moveToFirst()) {
+            //setUnavailableMessage();
             return;
         }
 
@@ -180,6 +198,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     }
 
     private void clearFields(){
+        ((TextView) rootView.findViewById(R.id.info_unavailable_message)).setText("");
         ((TextView) rootView.findViewById(R.id.bookTitle)).setText("");
         ((TextView) rootView.findViewById(R.id.bookSubTitle)).setText("");
         ((TextView) rootView.findViewById(R.id.authors)).setText("");
@@ -207,6 +226,43 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             if (resultCode == MainActivity.RESULT_OK) {
                 ean.setText(data.getStringExtra(ISBN_KEY));
             }
+        }
+    }
+
+    /**
+     * Set the appropriate message why the book info cannot be found
+     */
+    private void setUnavailableMessage(){
+        TextView messageView = (TextView)getView().findViewById(R.id.info_unavailable_message);
+        if(messageView != null){
+            int message;
+            @BookProvider.ISBN_Status int isbnStatus = Utility.getIsbnStatus(getActivity());
+            switch(isbnStatus){
+                case BookProvider.ISBN_STATUS_SERVER_DOWN:
+                    message = R.string.add_book_server_down;
+                    break;
+                case BookProvider.ISBN_STATUS_SERVER_INVALID:
+                    message = R.string.add_book_server_error;
+                    break;
+                case BookProvider.ISBN_STATUS_NO_NETWORK:
+                    message = R.string.add_book_no_network;
+                    break;
+                default:
+                    message = R.string.no_book_info_default_message;
+            }
+            if(isbnStatus != BookProvider.ISBN_STATUS_OK){
+                messageView.setText(message);
+            }
+            else{
+                messageView.setText("");
+            }
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        if(s.equals(getString(R.string.isbn_status_key))){
+            setUnavailableMessage();
         }
     }
 }

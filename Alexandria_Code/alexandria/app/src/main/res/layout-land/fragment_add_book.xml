@@ -38,6 +38,14 @@
             android:layout_toEndOf="@+id/ean"/>
 
         <TextView
+            android:id="@+id/info_unavailable_message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:padding="@dimen/custom_padding"
+            android:layout_below="@+id/ean" />
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/bookTitle"
