@@ -98,6 +98,12 @@ public class CollectionWidgetRemoteViewsService extends RemoteViewsService {
                 views.setTextViewText(R.id.widget_away_name, data.getString(AWAY_COL));
                 int score1 = data.getInt(HOME_GOALS_COL);
                 int score2 = data.getInt(AWAY_GOALS_COL);
+                boolean isRtl = getResources().getBoolean((R.bool.isRtl));
+                if(isRtl){
+                    int tmp = score1;
+                    score1 = score2;
+                    score2 = tmp;
+                }
                 views.setTextViewText(R.id.widget_score_textview, Utilities.getScores(score1, score2));
                 views.setTextViewText(R.id.widget_data_textview, data.getString(TIME_COL));
 
